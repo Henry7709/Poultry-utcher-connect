@@ -1,0 +1,851 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Poultry Connect</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%2064%2064%27%3E%3Crect%20width%3D%2764%27%20height%3D%2764%27%20rx%3D%2714%27%20fill%3D%27%23C23B25%27/%3E%3Cpath%20d%3D%27M13%2038C6%2033%205%2022%2010%2017c3%206%207%209%2013%2012z%27%20fill%3D%27%23fff%27/%3E%3Cellipse%20cx%3D%2730%27%20cy%3D%2740%27%20rx%3D%2717%27%20ry%3D%2713%27%20fill%3D%27%23fff%27/%3E%3Cpath%20d%3D%27M22%2041c3%207%2014%207%2018-1-4%202-13%201-18%201z%27%20fill%3D%27%23E8D2CC%27/%3E%3Ccircle%20cx%3D%2743%27%20cy%3D%2724%27%20r%3D%279%27%20fill%3D%27%23fff%27/%3E%3Ccircle%20cx%3D%2738%27%20cy%3D%2716%27%20r%3D%273.2%27%20fill%3D%27%23F4BA1C%27/%3E%3Ccircle%20cx%3D%2743%27%20cy%3D%2714%27%20r%3D%273.6%27%20fill%3D%27%23F4BA1C%27/%3E%3Ccircle%20cx%3D%2748%27%20cy%3D%2716.5%27%20r%3D%273.2%27%20fill%3D%27%23F4BA1C%27/%3E%3Cpath%20d%3D%27M51%2022l8%203-8%203z%27%20fill%3D%27%23F4BA1C%27/%3E%3Ccircle%20cx%3D%2746%27%20cy%3D%2722.5%27%20r%3D%271.7%27%20fill%3D%27%231A1F1D%27/%3E%3Cellipse%20cx%3D%2749%27%20cy%3D%2731%27%20rx%3D%272.2%27%20ry%3D%273.4%27%20fill%3D%27%23F4BA1C%27/%3E%3Cpath%20d%3D%27M26%2052v7M34%2052v7M22%2059h8M30%2059h8%27%20stroke%3D%27%23F4BA1C%27%20stroke-width%3D%272.6%27%20stroke-linecap%3D%27round%27%20fill%3D%27none%27/%3E%3C/svg%3E">
+<meta name="theme-color" content="#C23B25">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: header, toolbar, then a two-column split: list on the left, live map on the right (map first on phones). */
+:root {
+  --bg: #F3F5F4; --surface: #FFFFFF; --surface-2: #E9EEEC; --fg: #1A1F1D; --muted: #5A6561; --line: #D9DFDC;
+  --accent: #C23B25; --accent-ink: #FFFFFF; --yolk: #F4BA1C; --yolk-ink: #3A2B00; --good: #2C7A4B; --danger: #B3261E; --me: #2563EB;
+  --font-display: "Bricolage Grotesque", "Trebuchet MS", system-ui, sans-serif;
+  --font-body: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-data: "DM Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #111514; --surface: #1A1F1E; --surface-2: #232A28; --fg: #ECEFED; --muted: #9AA49F; --line: #2B3331;
+    --accent: #F0705A; --accent-ink: #1C0A06; --yolk: #F6C93E; --yolk-ink: #2A1E00; --good: #5FC088; --danger: #F08A82; --me: #6EA0FF;
+    color-scheme: dark;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 15px; line-height: 1.5; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; line-height: 1.1; }
+button, input, select, textarea { font: inherit; color: inherit; }
+a { color: var(--accent); }
+:focus-visible { outline: 3px solid var(--yolk); outline-offset: 2px; }
+.wrap { max-width: 1240px; margin-inline: auto; padding-inline: 16px; }
+[hidden] { display: none !important; }
+
+header.top { border-bottom: 1px solid var(--line); }
+.brand-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding-block: 14px 10px; }
+.brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.brand h1 { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.01em; }
+.brand small { display: block; color: var(--muted); font-size: 0.78rem; }
+.head-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); padding: 3px; }
+.seg button { border: 0; background: transparent; border-radius: 999px; padding: 6px 12px; font-weight: 600; font-size: 0.85rem; cursor: pointer; color: var(--muted); }
+.seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
+
+nav.tabs { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 10px; scrollbar-width: none; }
+nav.tabs::-webkit-scrollbar { display: none; }
+nav.tabs button { flex: none; border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 8px 16px; font-weight: 600; cursor: pointer; }
+nav.tabs button[aria-selected="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+
+.toolbar { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr auto; gap: 10px; align-items: end; padding-block: 14px 0; }
+.field { display: grid; gap: 4px; min-width: 0; }
+.field label, .lbl { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
+input, select, textarea { width: 100%; min-width: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 9px 12px; }
+input[type="checkbox"] { width: 18px; height: 18px; padding: 0; accent-color: var(--accent); }
+textarea { min-height: 76px; resize: vertical; }
+.check { display: flex; align-items: center; gap: 8px; padding-block: 9px; font-weight: 500; white-space: nowrap; }
+.tool-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding-block: 12px 0; }
+
+.layout { display: grid; grid-template-columns: minmax(0, 480px) minmax(0, 1fr); gap: 16px; align-items: start; padding-block: 16px 56px; }
+#list { display: grid; gap: 14px; min-width: 0; }
+#map { position: sticky; top: 12px; z-index: 0; height: min(78vh, 760px); min-height: 420px; border-radius: 14px; border: 1px solid var(--line); background: var(--surface-2); }
+.maphint { color: var(--muted); font-size: 0.8rem; margin: 8px 0 0; }
+
+.intro h2 { font-size: clamp(1.4rem, 3vw, 1.9rem); font-weight: 800; letter-spacing: -0.02em; }
+.intro p { margin: 6px 0 0; color: var(--muted); }
+.cta { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; background: var(--surface); border: 1px solid var(--line); border-left: 6px solid var(--yolk); border-radius: 12px; padding: 12px 16px; }
+.cta p { margin: 0; flex: 1 1 220px; }
+
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px; display: grid; gap: 12px; align-content: start; min-width: 0; }
+.card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+.card h3 { font-size: 1.25rem; font-weight: 700; }
+.kicker { font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+.price { background: var(--yolk); color: var(--yolk-ink); border-radius: 8px; padding: 4px 10px; text-align: right; font-family: var(--font-data); font-weight: 500; flex: none; }
+.price b { display: block; font-size: 1.05rem; white-space: nowrap; }
+.price span { font-size: 0.7rem; display: block; }
+.facts { display: flex; flex-wrap: wrap; gap: 4px 14px; color: var(--muted); font-size: 0.9rem; }
+.facts strong { color: var(--fg); font-weight: 600; }
+.pills { display: flex; flex-wrap: wrap; gap: 6px; }
+.pill { font-size: 0.75rem; font-weight: 600; border-radius: 999px; padding: 2px 10px; border: 1px solid var(--line); background: var(--surface-2); }
+.pill.good { color: var(--good); border-color: var(--good); background: transparent; }
+.notes { margin: 0; font-size: 0.92rem; }
+.tag { display: inline-block; font-size: 0.7rem; font-weight: 600; border: 1px dashed var(--muted); color: var(--muted); border-radius: 6px; padding: 1px 6px; margin-left: 6px; vertical-align: middle; }
+.tag.mine { border-style: solid; border-color: var(--accent); color: var(--accent); }
+.sold { opacity: 0.6; }
+.sold .price { background: var(--surface-2); color: var(--muted); }
+
+.btn { border: 1px solid var(--accent); background: var(--accent); color: var(--accent-ink); border-radius: 10px; padding: 9px 14px; font-weight: 600; cursor: pointer; text-decoration: none; display: inline-block; }
+.btn.ghost { background: transparent; color: var(--accent); }
+.btn.warn { background: transparent; color: var(--danger); border-color: var(--danger); }
+.btn.sm { padding: 6px 10px; font-size: 0.85rem; }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.contact { display: grid; gap: 8px; background: var(--surface-2); border-radius: 10px; padding: 10px 12px; }
+.contact .num { font-family: var(--font-data); font-size: 1.05rem; overflow-wrap: anywhere; }
+.empty { border: 1px dashed var(--line); border-radius: 14px; padding: 28px 16px; text-align: center; color: var(--muted); }
+.note, .hint { color: var(--muted); font-size: 0.85rem; margin: 0; }
+.err { color: var(--danger); font-size: 0.85rem; min-height: 1.2em; margin: 0; }
+
+.tablewrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; }
+table { border-collapse: collapse; width: 100%; min-width: 480px; }
+th, td { text-align: left; padding: 11px 14px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+th { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+tr:last-child td { border-bottom: 0; }
+td.num { font-family: var(--font-data); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.range { position: relative; height: 10px; background: var(--surface-2); border-radius: 999px; min-width: 110px; }
+.range i { position: absolute; top: 0; bottom: 0; background: var(--accent); border-radius: 999px; opacity: 0.85; }
+.range b { position: absolute; top: -3px; width: 4px; height: 16px; background: var(--yolk); border-radius: 2px; }
+
+.formcard { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px; display: grid; gap: 14px; }
+.formcard .formgrid { margin-bottom: 0; }
+.formcard h3 { font-size: 1.15rem; font-weight: 700; }
+#list select[data-contact-status] { width: 100%; }
+/* map markers */
+.mk { width: 18px; height: 18px; border-radius: 50%; border: 3px solid #fff; box-shadow: 0 1px 5px rgba(0, 0, 0, 0.5); }
+.mk.farm { background: #C23B25; }
+.mk.order { background: #F4BA1C; }
+.mk.approx { border-style: dashed; }
+.mk.pinprev { width: 22px; height: 22px; background: #2563EB; border-color: #fff; }
+.pop { font-family: var(--font-body); line-height: 1.45; }
+.pop a { color: #C23B25; }
+
+dialog { border: 1px solid var(--line); border-radius: 14px; background: var(--surface); color: var(--fg); padding: 18px; width: min(720px, calc(100% - 24px)); max-height: 92vh; overflow: auto; }
+dialog::backdrop { background: rgba(0, 0, 0, 0.55); }
+dialog h2 { font-size: 1.5rem; margin-bottom: 12px; }
+.formgrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-bottom: 12px; }
+.formgrid .full { grid-column: 1 / -1; }
+
+.pickbar { display: none; position: fixed; left: 50%; transform: translateX(-50%); top: 12px; z-index: 2000; background: var(--fg); color: var(--bg); padding: 10px 14px; border-radius: 12px; gap: 12px; align-items: center; max-width: calc(100% - 24px); }
+body.picking .pickbar { display: flex; }
+body.picking #map { cursor: crosshair; }
+#toast { position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--fg); color: var(--bg); padding: 10px 16px; border-radius: 10px; font-weight: 600; z-index: 3000; max-width: calc(100% - 32px); }
+
+@media (max-width: 900px) {
+  .toolbar { grid-template-columns: 1fr 1fr; }
+  .toolbar .field:first-child { grid-column: 1 / -1; }
+  .layout { grid-template-columns: minmax(0, 1fr); }
+  #map { position: relative; top: 0; height: 46vh; min-height: 300px; order: -1; }
+}
+@media (max-width: 640px) { .formgrid { grid-template-columns: 1fr; } }
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto; transition: none !important; } }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <div class="brand-row">
+      <div class="brand">
+        <svg width="40" height="40" viewBox="0 0 64 64" role="img" aria-label="Poultry Connect chicken logo"><rect width='64' height='64' rx='14' fill='#C23B25'/><path d='M13 38C6 33 5 22 10 17c3 6 7 9 13 12z' fill='#fff'/><ellipse cx='30' cy='40' rx='17' ry='13' fill='#fff'/><path d='M22 41c3 7 14 7 18-1-4 2-13 1-18 1z' fill='#E8D2CC'/><circle cx='43' cy='24' r='9' fill='#fff'/><circle cx='38' cy='16' r='3.2' fill='#F4BA1C'/><circle cx='43' cy='14' r='3.6' fill='#F4BA1C'/><circle cx='48' cy='16.5' r='3.2' fill='#F4BA1C'/><path d='M51 22l8 3-8 3z' fill='#F4BA1C'/><circle cx='46' cy='22.5' r='1.7' fill='#1A1F1D'/><ellipse cx='49' cy='31' rx='2.2' ry='3.4' fill='#F4BA1C'/><path d='M26 52v7M34 52v7M22 59h8M30 59h8' stroke='#F4BA1C' stroke-width='2.6' stroke-linecap='round' fill='none'/></svg>
+        <div><h1>Poultry Connect</h1><small id="stats"></small></div>
+      </div>
+      <button class="btn" type="button" id="installbtn">Install app</button>
+      </div>
+    <nav class="tabs" aria-label="Sections">
+      <button type="button" data-tab="farms" aria-selected="true">Farms</button>
+      <button type="button" data-tab="orders" aria-selected="false">Buyer requests</button>
+      <button type="button" data-tab="buy" aria-selected="false">I want to buy</button>
+      <button type="button" data-tab="sell" aria-selected="false">I want to sell</button>
+      <button type="button" data-tab="buyers" aria-selected="false">Find buyers</button>
+      <button type="button" data-tab="prices" aria-selected="false">Prices</button>
+      <button type="button" data-tab="mine" aria-selected="false">My posts</button>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="toolbar" id="toolbar" aria-label="Filters">
+    <div class="field"><label for="q">Search</label><input id="q" type="search" placeholder="Farm, product or district"></div>
+    <div class="field"><label for="fprod">Product</label><select id="fprod"></select></div>
+    <div class="field"><label for="fdist">District</label><select id="fdist"></select></div>
+    <div class="field"><label for="fsort">Sort</label><select id="fsort"><option value="new">Newest first</option><option value="near" disabled>Nearest to me</option></select></div>
+    <div class="field"><label for="frad">Distance</label><select id="frad" disabled><option value="0">Any distance</option><option value="10">Within 10 km</option><option value="25">Within 25 km</option><option value="50">Within 50 km</option><option value="100">Within 100 km</option></select></div>
+    <label class="check"><input id="fdel" type="checkbox"> Delivers only</label>
+  </section>
+  <div class="tool-row" id="toolrow">
+    <button class="btn" type="button" data-act="locate">Use my location</button>
+    <button class="btn ghost" type="button" data-act="fit-uganda">Show all Uganda</button>
+    <span class="hint" id="locstate">Share your location to see the nearest farms and how far away they are.</span>
+  </div>
+
+  <div class="layout">
+    <section id="list" aria-live="polite"></section>
+    <div>
+      <div id="map" role="region" aria-label="Map of farms and restaurants"></div>
+      <p class="maphint">Red markers are farms and yellow markers are restaurants. A dashed outline means the position is approximate (the district centre). Distances are straight-line estimates.</p>
+    </div>
+  </div>
+</main>
+
+<div class="pickbar" role="status"><span>Tap the map to place your pin</span><button class="btn sm" type="button" data-act="pick-cancel">Cancel</button></div>
+<div id="toast" role="status" hidden></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  /* ---------- reference data ---------- */
+  var KEY = 'poultryconnect.web.v1';
+  var UG = [[-1.6, 29.5], [4.35, 35.1]]; // south-west and north-east corners of Uganda
+  var PLACES = { // district centre: [latitude, longitude]
+    'Kampala': [0.3476, 32.5825], 'Wakiso': [0.4044, 32.4594], 'Mukono': [0.3533, 32.7553], 'Luwero': [0.8492, 32.4731],
+    'Mubende': [0.5594, 31.3958], 'Jinja': [0.4244, 33.2041], 'Iganga': [0.6092, 33.4686], 'Tororo': [0.6928, 34.1810],
+    'Mbale': [1.0821, 34.1758], 'Soroti': [1.7147, 33.6111], 'Moroto': [2.5340, 34.6666], 'Lira': [2.2499, 32.8999],
+    'Gulu': [2.7746, 32.2990], 'Kitgum': [3.2889, 32.8870], 'Arua': [3.0210, 30.9110], 'Masindi': [1.6744, 31.7150],
+    'Hoima': [1.4331, 31.3524], 'Fort Portal': [0.6710, 30.2750], 'Kasese': [0.1833, 30.0833], 'Masaka': [-0.3136, 31.7413],
+    'Mbarara': [-0.6072, 30.6545], 'Kabale': [-1.2490, 29.9899]
+  };
+  var DISTRICTS = Object.keys(PLACES).sort();
+  var PRODUCTS = [
+    { name: 'Eggs', unit: 'tray (30 eggs)' }, { name: 'Broiler (live)', unit: 'bird' }, { name: 'Dressed chicken', unit: 'kg' },
+    { name: 'Layer hen', unit: 'bird' }, { name: 'Kienyeji (local)', unit: 'bird' }, { name: 'Spent hen', unit: 'bird' }, { name: 'Turkey', unit: 'bird' }
+  ];
+  var UNITS = ['tray (30 eggs)', 'bird', 'kg', 'crate (12 trays)'];
+  var AVAIL = ['Ready now', 'Within 1 week', 'In 2+ weeks'];
+  var FREQ = ['Daily', 'Weekly', 'Monthly', 'One-off'];
+  var PRICES = [
+    { p: 'Eggs', unit: 'tray', lo: 11000, mid: 13000, hi: 15500 }, { p: 'Broiler (live)', unit: 'bird', lo: 18000, mid: 22000, hi: 28000 },
+    { p: 'Dressed chicken', unit: 'kg', lo: 12000, mid: 14000, hi: 17000 }, { p: 'Layer hen', unit: 'bird', lo: 20000, mid: 25000, hi: 32000 },
+    { p: 'Kienyeji (local)', unit: 'bird', lo: 25000, mid: 35000, hi: 50000 }, { p: 'Spent hen', unit: 'bird', lo: 10000, mid: 14000, hi: 18000 },
+    { p: 'Turkey', unit: 'bird', lo: 70000, mid: 100000, hi: 150000 }
+  ];
+  var GPS_ERR = 'Could not read that location. Paste coordinates like 0.3476, 32.5825 or a Google Maps link, and make sure the place is in Uganda.';
+
+  /* ---------- helpers ---------- */
+  var $ = function (s) { return document.querySelector(s); };
+  function esc(v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function ugx(n) { return Number(n).toLocaleString('en-UG'); }
+  function ago(ts) {
+    var m = Math.max(1, Math.round((Date.now() - ts) / 60000));
+    if (m < 60) return m + ' min ago';
+    var h = Math.round(m / 60);
+    if (h < 24) return h + ' h ago';
+    var d = Math.round(h / 24);
+    return d + (d === 1 ? ' day ago' : ' days ago');
+  }
+  function uid() { return 'u' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+  function validPhone(v) { return /^[+\d][\d\s-]{7,}$/.test(v.trim()); }
+  function unitFor(name) { var p = PRODUCTS.filter(function (x) { return x.name === name; })[0]; return p ? p.unit : 'bird'; }
+  function fmtDate(d) { try { return new Date(d + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }); } catch (e) { return d; } }
+  function round5(n) { return Math.round(n * 1e5) / 1e5; }
+  function jit(id, k) { var h = 0, s = id + k; for (var i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0; return ((Math.abs(h) % 1000) / 1000 - 0.5) * 0.06; }
+  function km(a, b) {
+    var r = Math.PI / 180, dLat = (b.lat - a.lat) * r, dLng = (b.lng - a.lng) * r;
+    var h = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(a.lat * r) * Math.cos(b.lat * r) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
+    return 2 * 6371 * Math.asin(Math.sqrt(h));
+  }
+  function nearestDistrict(p) {
+    var best = DISTRICTS[0], bd = Infinity;
+    DISTRICTS.forEach(function (d) { var x = km(p, { lat: PLACES[d][0], lng: PLACES[d][1] }); if (x < bd) { bd = x; best = d; } });
+    return best;
+  }
+  function parseGps(s) {
+    s = (s || '').trim();
+    if (!s) return null;
+    var m = s.match(/@(-?\d+(?:\.\d+)?),\s*(-?\d+(?:\.\d+)?)/) || s.match(/(-?\d{1,2}(?:\.\d+)?)\s*[,;\s]\s*(-?\d{1,3}(?:\.\d+)?)/);
+    if (!m) return undefined;
+    return { lat: parseFloat(m[1]), lng: parseFloat(m[2]) };
+  }
+  function checkGps(s) {
+    var r = parseGps(s);
+    if (r === null) return null;
+    if (!r || r.lat < UG[0][0] || r.lat > UG[1][0] || r.lng < UG[0][1] || r.lng > UG[1][1]) return false;
+    return { lat: round5(r.lat), lng: round5(r.lng) };
+  }
+  function dirHref(it) { return 'https://www.google.com/maps/dir/?api=1&destination=' + it.lat + ',' + it.lng; }
+  function opts(list, sel) { return list.map(function (x) { return '<option' + (x === sel ? ' selected' : '') + '>' + esc(x) + '</option>'; }).join(''); }
+
+  var toastTimer;
+  function toast(msg) {
+    var t = $('#toast'); t.textContent = msg; t.hidden = false;
+    clearTimeout(toastTimer); toastTimer = setTimeout(function () { t.hidden = true; }, 3200);
+  }
+
+  /* ---------- data ---------- */
+  function seed() {
+    var now = Date.now();
+    function at(id, o) { var c = PLACES[o.district]; o.id = id; o.lat = c[0] + jit(id, 0); o.lng = c[1] + jit(id, 1); o.example = true; o.exact = false; o.ts = now - o.h * 3600e3; delete o.h; return o; }
+    return {
+      role: 'farm', mine: [],
+      farms: [
+        at('f1', { name: 'Example Layers Farm', product: 'Eggs', qty: 200, unit: 'tray (30 eggs)', price: 13000, district: 'Wakiso', owner: 'Example Owner A', phone: '0700 000 001', avail: 'Ready now', delivers: true, notes: 'Fresh brown eggs, collected daily.', h: 1 }),
+        at('f2', { name: 'Example Broiler Farm', product: 'Broiler (live)', qty: 500, unit: 'bird', price: 22000, district: 'Mukono', owner: 'Example Owner B', phone: '0700 000 002', avail: 'Within 1 week', delivers: true, notes: 'About 2 kg at 6 weeks. Vaccination records available.', h: 2 }),
+        at('f3', { name: 'Example Kienyeji Farm', product: 'Kienyeji (local)', qty: 150, unit: 'bird', price: 38000, district: 'Mbarara', owner: 'Example Owner C', phone: '0700 000 003', avail: 'Ready now', delivers: false, notes: 'Free-range birds. Buyer collects from the farm.', h: 3 }),
+        at('f4', { name: 'Example Egg Farm', product: 'Eggs', qty: 120, unit: 'tray (30 eggs)', price: 12000, district: 'Gulu', owner: 'Example Owner D', phone: '0700 000 004', avail: 'Ready now', delivers: true, notes: 'Weekly supply to hotels and restaurants.', h: 24 }),
+        at('f5', { name: 'Example Poultry Processors', product: 'Dressed chicken', qty: 300, unit: 'kg', price: 14500, district: 'Jinja', owner: 'Example Owner E', phone: '0700 000 005', avail: 'Ready now', delivers: true, notes: 'Cleaned and chilled, packed in 5 kg bags.', h: 25 }),
+        at('f6', { name: 'Example Highland Farm', product: 'Turkey', qty: 25, unit: 'bird', price: 110000, district: 'Kabale', owner: 'Example Owner F', phone: '0700 000 006', avail: 'In 2+ weeks', delivers: false, notes: 'Ready for the festive season. Order early.', h: 27 }),
+        at('f7', { name: 'Example Eastern Broilers', product: 'Broiler (live)', qty: 400, unit: 'bird', price: 21000, district: 'Mbale', owner: 'Example Owner G', phone: '0700 000 007', avail: 'Ready now', delivers: true, notes: 'Delivery within Mbale, Tororo and Iganga.', h: 33 }),
+        at('f8', { name: 'Example Masaka Eggs', product: 'Eggs', qty: 150, unit: 'tray (30 eggs)', price: 12500, district: 'Masaka', owner: 'Example Owner H', phone: '0700 000 008', avail: 'Ready now', delivers: true, notes: 'Graded eggs, trays supplied.', h: 40 }),
+        at('f9', { name: 'Example Northern Layers', product: 'Layer hen', qty: 80, unit: 'bird', price: 26000, district: 'Lira', owner: 'Example Owner I', phone: '0700 000 009', avail: 'Within 1 week', delivers: false, notes: 'Point-of-lay hens, 18 weeks old.', h: 48 })
+      ],
+      orders: [
+        at('o1', { name: 'Example Cafe', buyerType: 'Cafe', product: 'Eggs', qty: 60, unit: 'tray (30 eggs)', price: 13500, district: 'Kampala', freq: 'Weekly', owner: 'Example Manager', phone: '0700 000 011', notes: 'Clean, graded eggs delivered before 8am.', h: 2 }),
+        at('o2', { name: 'Example Grill House', buyerType: 'Restaurant', product: 'Dressed chicken', qty: 120, unit: 'kg', price: 15000, district: 'Wakiso', freq: 'Daily', owner: 'Example Chef', phone: '0700 000 012', notes: 'Whole chicken, about 1.5 kg each.', h: 11 }),
+        at('o3', { name: 'Example Safari Lodge', buyerType: 'Hotel or lodge', product: 'Kienyeji (local)', qty: 30, unit: 'bird', price: 40000, district: 'Fort Portal', freq: 'Weekly', owner: 'Example Owner', phone: '0700 000 013', notes: 'Live birds, collected by our driver.', h: 19 }),
+        at('o4', { name: 'Example Street Kitchen', buyerType: 'Street food vendor', product: 'Eggs', qty: 40, unit: 'tray (30 eggs)', price: 13000, district: 'Jinja', freq: 'Weekly', owner: 'Example Cook', phone: '0700 000 014', notes: 'Rolex stall supply. Cash on delivery.', h: 30 }),
+        at('o5', { name: 'Example Hotel', buyerType: 'Hotel or lodge', product: 'Broiler (live)', qty: 50, unit: 'bird', price: 23000, district: 'Mbarara', freq: 'Weekly', owner: 'Example Steward', phone: '0700 000 015', notes: 'Weighing 1.8 to 2.2 kg.', h: 36 }),
+        at('o6', { name: 'Example Family', buyerType: 'Household', product: 'Eggs', qty: 4, unit: 'tray (30 eggs)', price: 13000, district: 'Kampala', freq: 'One-off', owner: 'Example Family', phone: '0700 000 016', recv: 'Delivery to me', needBy: new Date(now + 3 * 864e5).toISOString().slice(0, 10), notes: 'Eggs for a family event. Please deliver in the morning.', h: 5 })
+      ]
+    };
+  }
+  function load() {
+    try { var s = JSON.parse(localStorage.getItem(KEY)); if (s && s.farms && s.orders) return s; } catch (e) {}
+    return seed();
+  }
+  var FIREBASE_CONFIG = window.FIREBASE_CONFIG || null;
+  var cloud = { on: false, db: null, uid: null, loaded: false };
+  var state = load();
+  function save() { if (cloud.on) return; try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+
+  var ui = { tab: 'farms', q: '', product: '', district: '', delivers: false, sort: 'new', radius: 0, me: null, pin: null, picking: false };
+
+  /* ---------- filtering ---------- */
+  function textHit(it, q) { return !q || (it.name + ' ' + it.product + ' ' + it.district + ' ' + it.owner + ' ' + (it.notes || '')).toLowerCase().indexOf(q) > -1; }
+  function inRadius(it) { return !ui.radius || !ui.me || km(ui.me, it) <= ui.radius; }
+  function sorter(a, b) {
+    var s = (a.sold ? 1 : 0) - (b.sold ? 1 : 0);
+    if (s) return s;
+    if (ui.sort === 'near' && ui.me) return km(ui.me, a) - km(ui.me, b);
+    return b.ts - a.ts;
+  }
+  function visible(list, isFarm) {
+    var q = ui.q.trim().toLowerCase();
+    return list.filter(function (it) {
+      return textHit(it, q) && (!ui.product || it.product === ui.product) && (!ui.district || it.district === ui.district) && (!isFarm || !ui.delivers || it.delivers) && inRadius(it);
+    }).sort(sorter);
+  }
+  function mineItems() {
+    return state.farms.filter(isMine).map(function (x) { return [x, 'farm']; })
+      .concat(state.orders.filter(isMine).map(function (x) { return [x, 'order']; }));
+  }
+
+  /* ---------- cards ---------- */
+  function card(it, kind, own) {
+    var farm = kind === 'farm';
+    var d = ui.me ? Math.round(km(ui.me, it)) : null;
+    var tag = it.example ? '<span class="tag">Example</span>' : (own ? '<span class="tag mine">Yours</span>' : '');
+    var pills = farm
+      ? '<span class="pill' + (it.avail === 'Ready now' ? ' good' : '') + '">' + esc(it.avail) + '</span><span class="pill">' + (it.delivers ? 'Delivers' : 'Pickup only') + '</span>'
+      : (it.buyerType ? '<span class="pill">' + esc(it.buyerType) + '</span>' : '') + '<span class="pill">' + esc(it.freq) + '</span><span class="pill">' + (it.recv === 'I will collect' ? 'Buyer collects' : 'Deliver to ' + esc(it.district)) + '</span>' + (it.needBy ? '<span class="pill good">Needed by ' + esc(fmtDate(it.needBy)) + '</span>' : '');
+    var actions;
+    if (own) {
+      actions = '<div class="row">' + (farm && !it.sold ? '<button class="btn sm ghost" type="button" data-act="sold" data-id="' + it.id + '">Mark sold</button>' : '') +
+        '<button class="btn sm ghost" type="button" data-act="focus" data-id="' + it.id + '">Show on map</button>' +
+        '<button class="btn sm warn" type="button" data-act="remove" data-id="' + it.id + '">Remove</button></div>';
+    } else {
+      actions = '<div class="row"><button class="btn sm" type="button" data-act="reveal" data-id="' + it.id + '">Show contact</button>' +
+        '<button class="btn sm ghost" type="button" data-act="focus" data-id="' + it.id + '">Show on map</button>' +
+        '<a class="btn sm ghost" href="' + dirHref(it) + '" target="_blank" rel="noopener noreferrer">Directions</a></div>';
+    }
+    return '<article class="card' + (it.sold ? ' sold' : '') + '" id="c-' + it.id + '">' +
+      '<div class="card-head"><div><div class="kicker">' + esc(it.name) + (farm ? '' : ' wants') + '</div><h3>' + esc(it.product) + tag + '</h3></div>' +
+      '<div class="price"><b>' + ugx(it.price) + '</b><span>UGX per ' + esc(it.unit) + (farm ? '' : ' (max)') + '</span></div></div>' +
+      '<div class="pills">' + pills + '</div>' +
+      '<div class="facts"><span><strong>' + ugx(it.qty) + '</strong> ' + esc(it.unit) + (farm ? ' available' : ' needed') + '</span><span>' + esc(it.district) + (it.exact ? '' : ' (approx.)') + '</span>' +
+      (d !== null ? '<span><strong>' + (d < 2 ? 'Under 2 km' : 'About ' + d + ' km') + '</strong> from you</span>' : '') + '<span>' + ago(it.ts) + '</span></div>' +
+      (it.notes ? '<p class="notes">' + esc(it.notes) + '</p>' : '') +
+      ((farm || (it.owner && it.owner !== it.name)) ? '<div class="facts"><span>' + (farm ? 'Owner' : 'Contact') + ': <strong>' + esc(it.owner) + '</strong></span></div>' : '') + (it.sold ? '<div class="facts"><strong>Sold</strong></div>' : actions) + '</article>';
+  }
+  function pricesHtml() {
+    var rows = PRICES.map(function (r) {
+      var top = r.hi * 1.1;
+      return '<tr><td>' + esc(r.p) + '</td><td>' + r.unit + '</td><td class="num">' + ugx(r.mid) + '</td><td><div class="range" title="' + ugx(r.lo) + ' to ' + ugx(r.hi) + '">' +
+        '<i style="left:' + (r.lo / top * 100) + '%;width:' + ((r.hi - r.lo) / top * 100) + '%"></i><b style="left:calc(' + (r.mid / top * 100) + '% - 2px)"></b></div>' +
+        '<div class="note num">' + ugx(r.lo) + ' to ' + ugx(r.hi) + '</div></td></tr>';
+    }).join('');
+    return '<div class="intro"><h2>Indicative prices</h2><p>A guide for setting a fair price. The bar shows the usual range and the yellow mark is the typical price.</p></div>' +
+      '<div class="tablewrap"><table><thead><tr><th>Product</th><th>Per</th><th>Typical (UGX)</th><th>Range (UGX)</th></tr></thead><tbody>' + rows + '</tbody></table></div>' +
+      '<p class="note">These are sample figures. Egg prices are per tray of 30. Check today\'s price with a farm or at your nearest market before you agree a deal.</p>';
+  }
+
+  /* ---------- rendering ---------- */
+  function render(fit) {
+    document.querySelectorAll('nav.tabs [data-tab]').forEach(function (b) { b.setAttribute('aria-selected', b.dataset.tab === ui.tab ? 'true' : 'false'); });
+    $('#toolbar').hidden = !(ui.tab === 'farms' || ui.tab === 'orders');
+    $('#fdel').parentNode.hidden = ui.tab !== 'farms';
+    var html = '';
+    if (ui.tab === 'farms') {
+      var rows = visible(state.farms, true);
+      html = '<div class="intro"><h2>Poultry from farms across Uganda</h2><p>Eggs, broilers, kienyeji and dressed chicken from the farm owners who raise them. Tap a card to see it on the map.</p></div>' +
+        '<div class="cta"><p>Cannot find what you need? Tell farms what you want and they will contact you.</p><button class="btn" type="button" data-act="goto" data-tab="buy">I want to buy</button></div>' +
+        (rows.length ? rows.map(function (f) { return card(f, 'farm', false); }).join('') : '<div class="empty">' + (cloud.on && !cloud.loaded ? 'Loading farms...' : 'No farms match your search. Clear a filter or widen the distance.') + '</div>');
+    } else if (ui.tab === 'orders') {
+      var os = visible(state.orders, false);
+      html = '<div class="intro"><h2>What buyers are looking for</h2><p>Restaurants, hotels, shops and families post what they need. Farm owners can contact them directly.</p></div>' +
+        '<div class="cta"><p>Have birds or eggs ready? List them so buyers can find your farm.</p><button class="btn" type="button" data-act="goto" data-tab="sell">I want to sell</button></div>' +
+        (os.length ? os.map(function (o) { return card(o, 'order', false); }).join('') : '<div class="empty">' + (cloud.on && !cloud.loaded ? 'Loading requests...' : 'No buyer requests match your search.') + '</div>');
+    } else if (ui.tab === 'buy' || ui.tab === 'sell') {
+      html = formHtml(ui.tab);
+    } else if (ui.tab === 'buyers') {
+      html = buyersHtml();
+    } else if (ui.tab === 'prices') {
+      html = pricesHtml();
+    } else {
+      var mine = mineItems();
+      html = '<div class="intro"><h2>My posts</h2><p>Requests and flocks you posted from this device. Mark a listing as sold or remove a post here.</p></div>' +
+        (mine.length ? mine.map(function (p) { return card(p[0], p[1], true); }).join('') : '<div class="empty">You have not posted anything yet. Use the I want to buy or I want to sell tab.</div>');
+    }
+    var isForm = ui.tab === 'buy' || ui.tab === 'sell' || ui.tab === 'buyers', list = $('#list');
+    if (!(isForm && list.dataset.form === ui.tab)) { list.innerHTML = html; list.dataset.form = isForm ? ui.tab : ''; if (ui.tab === 'buyers') initBuyers(); }
+    if (ui.tab === 'buy' || ui.tab === 'sell') updatePinText();
+    $('#stats').textContent = state.farms.filter(function (f) { return !f.sold; }).length + ' farm listings · ' + state.orders.length + ' buyer requests';
+    renderMap(fit);
+  }
+
+  /* ---------- map ---------- */
+  var map = null, group = null, meLayer = null, pinMarker = null, markers = {};
+  function popup(it, kind) {
+    var d = ui.me ? Math.round(km(ui.me, it)) : null;
+    return '<div class="pop"><strong>' + esc(it.product) + '</strong><br>' + esc(it.name) + '<br>UGX ' + ugx(it.price) + ' per ' + esc(it.unit) + (kind === 'order' ? ' (max)' : '') +
+      '<br>' + esc(it.district) + (it.exact ? '' : ' (approximate)') + (d !== null ? ', about ' + d + ' km from you' : '') +
+      '<br><a href="' + dirHref(it) + '" target="_blank" rel="noopener noreferrer">Directions</a> &middot; <a href="tel:' + esc(it.phone.replace(/[^\d+]/g, '')) + '">' + esc(it.phone) + '</a></div>';
+  }
+  function itemsOnMap() {
+    if (ui.tab === 'farms') return visible(state.farms, true).filter(function (f) { return !f.sold; }).map(function (x) { return [x, 'farm']; });
+    if (ui.tab === 'orders') return visible(state.orders, false).map(function (x) { return [x, 'order']; });
+    if (ui.tab === 'mine') return mineItems().filter(function (p) { return !p[0].sold; });
+    return state.farms.filter(function (f) { return !f.sold; }).map(function (x) { return [x, 'farm']; }).concat(state.orders.map(function (x) { return [x, 'order']; }));
+  }
+  function renderMap(fit) {
+    if (!map) return;
+    group.clearLayers(); markers = {};
+    var items = itemsOnMap();
+    items.forEach(function (pair) {
+      var it = pair[0], kind = pair[1];
+      var m = L.marker([it.lat, it.lng], {
+        icon: L.divIcon({ className: 'mk ' + kind + (it.exact ? '' : ' approx'), iconSize: [18, 18], iconAnchor: [9, 9] }),
+        title: it.name + ' (' + it.product + ')'
+      });
+      m.bindPopup(popup(it, kind));
+      m.addTo(group);
+      markers[it.id] = m;
+    });
+    if (fit && items.length) {
+      var b = L.latLngBounds(items.map(function (p) { return [p[0].lat, p[0].lng]; }));
+      if (ui.me) b.extend([ui.me.lat, ui.me.lng]);
+      map.fitBounds(b.pad(0.2), { maxZoom: 11 });
+    }
+  }
+  function drawMe() {
+    if (!map) return;
+    meLayer.clearLayers();
+    if (!ui.me) return;
+    if (ui.me.acc && ui.me.acc < 3000) L.circle([ui.me.lat, ui.me.lng], { radius: ui.me.acc, color: '#2563EB', weight: 1, fillOpacity: 0.12 }).addTo(meLayer);
+    L.circleMarker([ui.me.lat, ui.me.lng], { radius: 8, color: '#fff', weight: 3, fillColor: '#2563EB', fillOpacity: 1 }).bindTooltip('You are here').addTo(meLayer);
+  }
+  function initMap() {
+    if (!window.L) { $('#map').innerHTML = '<p class="empty">The map could not load. Check your internet connection and reload the page.</p>'; return; }
+    map = L.map('map').fitBounds(UG);
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' }).addTo(map);
+    group = L.layerGroup().addTo(map);
+    meLayer = L.layerGroup().addTo(map);
+    window.addEventListener('resize', function () { map.invalidateSize(); });
+  }
+
+  /* ---------- location ---------- */
+  function locate(done) {
+    if (!window.isSecureContext) { toast('Location only works on https sites. Host this page on GitHub Pages or Netlify.'); return; }
+    if (!navigator.geolocation) { toast('This browser cannot share your location.'); return; }
+    toast('Finding your location...');
+    navigator.geolocation.getCurrentPosition(function (pos) {
+      var me = { lat: pos.coords.latitude, lng: pos.coords.longitude, acc: pos.coords.accuracy };
+      $('#toast').hidden = true;
+      done(me);
+    }, function (err) {
+      toast(err.code === 1 ? 'Location is blocked. Allow location for this site in your browser settings.' : err.code === 3 ? 'Finding your location took too long. Try again.' : 'Your position is unavailable. Try again outdoors or with mobile data on.');
+    }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 });
+  }
+  function inUganda(p) { return p.lat >= UG[0][0] && p.lat <= UG[1][0] && p.lng >= UG[0][1] && p.lng <= UG[1][1]; }
+  function useMyLocation() {
+    locate(function (me) {
+      ui.me = me; ui.sort = 'near';
+      $('#fsort').querySelector('[value="near"]').disabled = false; $('#fsort').value = 'near';
+      $('#frad').disabled = false;
+      $('#locstate').textContent = 'Location found. Farms are sorted nearest first.';
+      drawMe();
+      render(false);
+      if (inUganda(me)) map.setView([me.lat, me.lng], 10); else { toast('You appear to be outside Uganda, so distances will be large.'); map.fitBounds(UG); }
+    });
+  }
+
+  /* ---------- post forms: I want to buy / I want to sell ---------- */
+  var BUYER_TYPES = ['Restaurant', 'Hotel or lodge', 'Cafe', 'Street food vendor', 'Caterer or event', 'Butchery', 'Shop or retailer', 'School or institution', 'Household'];
+  var pickHandler = null;
+  function fld(id, label, inner, full) { return '<div class="field' + (full ? ' full' : '') + '"><label for="' + id + '">' + label + '</label>' + inner + '</div>'; }
+  function todayStr() { var d = new Date(); return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); }
+  function formHtml(kind) {
+    var buy = kind === 'buy', P = buy ? 'b' : 's';
+    var names = PRODUCTS.map(function (p) { return p.name; });
+    var head = buy
+      ? '<div class="intro"><h2>Tell farms what you need</h2><p>Fill in your details and what you want. Farms near you can then contact you. After you send it, you will see which farms sell it.</p></div>'
+      : '<div class="intro"><h2>List your poultry for sale</h2><p>Tell buyers what you have, how much, and the price per unit. After you post, you will see which buyers want it.</p></div>';
+    var fields = buy
+      ? fld('b-type', 'I am a', '<select id="b-type">' + opts(BUYER_TYPES, 'Restaurant') + '</select>') +
+        fld('b-name', 'Your name or business', '<input id="b-name" autocomplete="name">') +
+        fld('b-phone', 'Phone or WhatsApp', '<input id="b-phone" type="tel" autocomplete="tel" placeholder="0772 000 000"><span class="hint">Shown to people who tap Show contact on your request.</span>', true) +
+        fld('b-product', 'What do you want', '<select id="b-product">' + opts(names) + '</select>') +
+        fld('b-qty', 'How much', '<input id="b-qty" type="number" min="1" inputmode="numeric">') +
+        fld('b-unit', 'Unit', '<select id="b-unit">' + opts(UNITS) + '</select>') +
+        fld('b-price', 'Highest price per unit (UGX)', '<input id="b-price" type="number" min="1" inputmode="numeric">') +
+        fld('b-freq', 'How often', '<select id="b-freq">' + opts(FREQ, 'One-off') + '</select>') +
+        fld('b-date', 'Needed by (optional)', '<input id="b-date" type="date" min="' + todayStr() + '">') +
+        fld('b-recv', 'Delivery', '<select id="b-recv">' + opts(['Delivery to me', 'I will collect']) + '</select>') +
+        fld('b-district', 'District', '<select id="b-district">' + opts(DISTRICTS, 'Kampala') + '</select>')
+      : fld('s-name', 'Farm name', '<input id="s-name" autocomplete="organization">') +
+        fld('s-owner', 'Your name', '<input id="s-owner" autocomplete="name">') +
+        fld('s-phone', 'Phone or WhatsApp', '<input id="s-phone" type="tel" autocomplete="tel" placeholder="0772 000 000"><span class="hint">Shown to people who tap Show contact on your listing.</span>', true) +
+        fld('s-product', 'What are you selling', '<select id="s-product">' + opts(names) + '</select>') +
+        fld('s-qty', 'Quantity available', '<input id="s-qty" type="number" min="1" inputmode="numeric">') +
+        fld('s-unit', 'Unit', '<select id="s-unit">' + opts(UNITS) + '</select>') +
+        fld('s-price', 'Price per unit (UGX)', '<input id="s-price" type="number" min="1" inputmode="numeric">') +
+        fld('s-avail', 'Availability', '<select id="s-avail">' + opts(AVAIL) + '</select>') +
+        '<div class="field"><span class="lbl">Delivery</span><label class="check"><input id="s-deliv" type="checkbox" checked> I can deliver to buyers</label></div>' +
+        fld('s-district', 'District', '<select id="s-district">' + opts(DISTRICTS, 'Kampala') + '</select>');
+    var pin = '<div class="field full"><span class="lbl">' + (buy ? 'Where should it be delivered' : 'Where is your farm') + ' (map pin)</span><p class="hint" id="pinstate"></p><div class="row">' +
+      '<button type="button" class="btn sm" data-act="pin-here">Use my current location</button><button type="button" class="btn sm ghost" data-act="pin-pick">Pick on map</button><button type="button" class="btn sm ghost" data-act="pin-clear">Clear pin</button></div></div>';
+    var rest = fld(P + '-paste', 'Or paste coordinates or a Google Maps link (optional)', '<input id="' + P + '-paste" placeholder="0.3476, 32.5825">', true) +
+      fld(P + '-notes', 'More details (optional)', '<textarea id="' + P + '-notes" placeholder="' + (buy ? 'Size or grade, delivery time, payment terms' : 'Breed, weight, vaccination, packaging, delivery area') + '"></textarea>', true);
+    return head + '<form class="formcard postform" data-kind="' + kind + '" novalidate><div class="formgrid">' + fields + pin + rest + '</div>' +
+      '<p class="err" id="' + P + '-err" role="alert"></p><div class="row"><button class="btn" type="submit">' + (buy ? 'Send my request' : 'Post my flock') + '</button></div></form>';
+  }
+  function updatePinText() {
+    var el = $('#pinstate'); if (!el) return;
+    el.textContent = ui.pin ? 'Pin set at ' + ui.pin.lat.toFixed(5) + ', ' + ui.pin.lng.toFixed(5) + '. Your exact spot will show on the map.'
+      : 'No pin yet. Without one, your post appears near the centre of the district you choose.';
+  }
+  function setPin(p) {
+    ui.pin = p;
+    if (map) {
+      if (pinMarker) { map.removeLayer(pinMarker); pinMarker = null; }
+      if (p) pinMarker = L.marker([p.lat, p.lng], { icon: L.divIcon({ className: 'mk pinprev', iconSize: [22, 22], iconAnchor: [11, 11] }), interactive: false }).addTo(map);
+    }
+    updatePinText();
+    var dsel = document.querySelector('#b-district, #s-district');
+    if (p && dsel) dsel.value = nearestDistrict(p);
+  }
+  function pickOnMap() {
+    if (!map) { toast('The map is not available.'); return; }
+    endPick();
+    ui.picking = true;
+    document.body.classList.add('picking');
+    $('#map').scrollIntoView({ block: 'center' });
+    pickHandler = function (e) {
+      endPick();
+      setPin({ lat: round5(e.latlng.lat), lng: round5(e.latlng.lng) });
+      toast('Pin placed on the map');
+      var el = $('#pinstate'); if (el) el.scrollIntoView({ block: 'center' });
+    };
+    map.once('click', pickHandler);
+  }
+  function endPick() { ui.picking = false; document.body.classList.remove('picking'); if (pickHandler) { map.off('click', pickHandler); pickHandler = null; } }
+  function enableNear() { $('#fsort').querySelector('[value="near"]').disabled = false; $('#fsort').value = 'near'; $('#frad').disabled = false; }
+
+  function submitPost(kind) {
+    var buy = kind === 'buy', P = buy ? 'b' : 's';
+    var v = function (id) { return ($('#' + P + '-' + id).value || '').trim(); }, err = $('#' + P + '-err');
+    function fail(m) { err.textContent = m; }
+    if (!v('name')) return fail(buy ? 'Enter your name or business.' : 'Enter your farm name.');
+    if (!buy && !v('owner')) return fail('Enter your name.');
+    if (v('name').length > 80 || v('notes').length > 500) return fail('Keep the name under 80 characters and the details under 500.');
+    if (!(Number(v('qty')) > 0) || !(Number(v('price')) > 0)) return fail('Enter a quantity and a price greater than zero.');
+    if (!validPhone(v('phone'))) return fail('Enter a phone number ' + (buy ? 'farms' : 'buyers') + ' can reach, for example 0772 000 000.');
+    if (buy && v('date') && v('date') < todayStr()) return fail('Choose today or a later date.');
+    var pasted = checkGps(v('paste'));
+    if (pasted === false) return fail(GPS_ERR);
+    var pin = pasted || ui.pin, id = uid(), d = pin ? nearestDistrict(pin) : v('district'), c = PLACES[d];
+    var it = {
+      id: id, name: v('name'), product: v('product'), qty: Number(v('qty')), unit: v('unit'), price: Number(v('price')), district: d,
+      phone: v('phone'), notes: v('notes'), ts: Date.now(), exact: !!pin,
+      lat: pin ? pin.lat : c[0] + jit(id, 0), lng: pin ? pin.lng : c[1] + jit(id, 1)
+    };
+    if (buy) { it.owner = it.name; it.buyerType = v('type'); it.freq = v('freq'); it.needBy = v('date'); it.recv = v('recv'); }
+    else { it.owner = v('owner'); it.avail = v('avail'); it.delivers = $('#s-deliv').checked; }
+    if (!savePost(buy ? 'orders' : 'farms', it)) return;
+    endPick(); setPin(null);
+    ui.q = ''; ui.district = ''; ui.delivers = false; ui.radius = 0; ui.product = it.product;
+    if (pin) { ui.me = { lat: pin.lat, lng: pin.lng, acc: 0 }; ui.sort = 'near'; enableNear(); drawMe(); $('#locstate').textContent = 'Using your pin to sort by distance.'; }
+    ui.tab = buy ? 'farms' : 'orders';
+    syncFilters(); render(true);
+    toast(buy ? 'Request sent. Showing farms that sell ' + it.product + '.' : 'Flock posted. Showing buyers who want ' + it.product + '.');
+    window.scrollTo(0, 0);
+  }
+
+  /* ---------- find buyers: map searches, WhatsApp invites, private contacts ---------- */
+  var CONTACT_KEY = 'poultryconnect.contacts.v1';
+  var BUSINESS_TYPES = [['Restaurants', 'restaurants'], ['Hotels and lodges', 'hotels'], ['Caterers', 'catering'], ['Cafes', 'cafe'], ['Supermarkets', 'supermarket'], ['Butcheries', 'butchery']];
+  var CONTACT_TYPES = ['Restaurant', 'Hotel or lodge', 'Caterer', 'Cafe', 'Supermarket', 'Butchery', 'Other'];
+  var STATUSES = ['To call', 'Contacted', 'Interested', 'Not interested'];
+  var contacts = [];
+  try { contacts = JSON.parse(localStorage.getItem(CONTACT_KEY)) || []; } catch (e) { contacts = []; }
+  function saveContacts() { try { localStorage.setItem(CONTACT_KEY, JSON.stringify(contacts)); } catch (e) {} }
+  function toIntl(num) {
+    var d = String(num).replace(/[^\d+]/g, '');
+    if (d.charAt(0) === '+') return d.slice(1);
+    if (d.indexOf('00') === 0) return d.slice(2);
+    if (d.charAt(0) === '0') return '256' + d.slice(1);
+    return d;
+  }
+  function mapSearchHref(term, district) {
+    if (district === '__me' && ui.me) return 'https://www.google.com/maps/search/' + encodeURIComponent(term) + '/@' + ui.me.lat + ',' + ui.me.lng + ',13z';
+    return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(term + ' in ' + (district === '__me' ? 'Uganda' : district) + ', Uganda');
+  }
+  function inviteMessage() {
+    var g = function (id) { var el = $('#' + id); return el ? el.value.trim() : ''; };
+    var who = g('i-name') || 'a poultry farmer', prod = g('i-product') || 'Eggs';
+    var price = Number(g('i-price')) > 0 ? ' at UGX ' + ugx(g('i-price')) + ' per ' + unitFor(prod) : '';
+    var where = g('i-district') ? ' in ' + g('i-district') : '';
+    var site = location.href.split('#')[0].split('?')[0];
+    return 'Hello, my name is ' + who + '. I have ' + prod.toLowerCase() + ' for sale' + where + price + '. If you need a supplier, you can see farms and post what you need on Poultry Connect: ' + site +
+      (g('i-phone') ? ' You can call or WhatsApp me on ' + g('i-phone') + '.' : '') + ' Thank you.';
+  }
+  function buyersHtml() {
+    var names = PRODUCTS.map(function (p) { return p.name; });
+    var chips = BUSINESS_TYPES.map(function (t) {
+      return '<a class="btn sm ghost" data-act="mapsearch" data-term="' + esc(t[1]) + '" href="' + mapSearchHref(t[1], 'Kampala') + '" target="_blank" rel="noopener noreferrer">' + esc(t[0]) + '</a>';
+    }).join('');
+    return '<div class="intro"><h2>Find buyers</h2><p>Look up businesses that may want your poultry, invite people you know, and keep your own list of leads. Nothing here is shared with anyone.</p></div>' +
+      '<section class="formcard"><h3>Find businesses on the map</h3>' +
+      fld('fb-district', 'Where', '<select id="fb-district">' + opts(DISTRICTS, 'Kampala') + '<option value="__me">Near my location</option></select>') +
+      '<div class="row">' + chips + '</div><p class="hint">Opens Google Maps in a new tab. Pick businesses that list a phone number, then save them under My contacts below. For Near my location, tap Use my location first.</p></section>' +
+      '<section class="formcard"><h3>Invite a buyer on WhatsApp</h3><p class="hint">Write a message about what you sell. Send it to a restaurant or shop you know. Leave the number empty to choose a contact inside WhatsApp.</p><div class="formgrid">' +
+      fld('i-name', 'Your name or farm', '<input id="i-name" autocomplete="name">') +
+      fld('i-phone', 'Your phone', '<input id="i-phone" type="tel" autocomplete="tel" placeholder="0772 000 000">') +
+      fld('i-product', 'What you sell', '<select id="i-product">' + opts(names) + '</select>') +
+      fld('i-price', 'Price per unit (UGX, optional)', '<input id="i-price" type="number" min="1" inputmode="numeric">') +
+      fld('i-district', 'Your district', '<select id="i-district">' + opts(DISTRICTS, 'Kampala') + '</select>') +
+      fld('i-to', 'Buyer WhatsApp number (optional)', '<input id="i-to" type="tel" placeholder="0772 000 000">') +
+      fld('i-msg', 'Message', '<textarea id="i-msg"></textarea>', true) +
+      '</div><div class="row"><a class="btn" id="i-wa" data-act="invite-wa" href="#" target="_blank" rel="noopener noreferrer">Open WhatsApp</a><button class="btn ghost" type="button" data-act="invite-copy">Copy message</button></div></section>' +
+      '<section class="formcard"><h3>My contacts</h3><p class="hint">Saved only on this phone. Save businesses you found with a public business phone number, or people who agreed to hear from you. Contact them politely and stop if they say no.</p><div class="formgrid">' +
+      fld('c-name', 'Business or person', '<input id="c-name">') +
+      fld('c-type', 'Type', '<select id="c-type">' + opts(CONTACT_TYPES) + '</select>') +
+      fld('c-phone', 'Phone (optional)', '<input id="c-phone" type="tel" placeholder="0772 000 000">') +
+      fld('c-district', 'District', '<select id="c-district">' + opts(DISTRICTS, 'Kampala') + '</select>') +
+      fld('c-note', 'Note (optional)', '<textarea id="c-note" placeholder="Who you spoke to, what they buy, when to call again"></textarea>', true) +
+      '</div><p class="err" id="c-err" role="alert"></p><div class="row"><button class="btn" type="button" data-act="contact-add">Save contact</button></div>' +
+      '<div id="contactsList"></div></section>';
+  }
+  function renderContacts() {
+    var el = $('#contactsList'); if (!el) return;
+    if (!contacts.length) { el.innerHTML = '<div class="empty">No contacts yet. Save a business you found on the map to keep track of who you called.</div>'; return; }
+    el.innerHTML = contacts.map(function (c) {
+      var plain = (c.phone || '').replace(/[^\d+]/g, '');
+      return '<article class="card"><div class="card-head"><div><div class="kicker">' + esc(c.type) + (c.district ? ' · ' + esc(c.district) : '') + '</div><h3>' + esc(c.name) + '</h3></div></div>' +
+        (c.phone ? '<div class="facts"><strong>' + esc(c.phone) + '</strong></div>' : '') +
+        (c.note ? '<p class="notes">' + esc(c.note) + '</p>' : '') +
+        '<select aria-label="Status for ' + esc(c.name) + '" data-contact-status="' + c.id + '">' + opts(STATUSES, c.status) + '</select>' +
+        '<div class="row">' + (c.phone ? '<a class="btn sm" href="tel:' + esc(plain) + '">Call</a><a class="btn sm ghost" data-act="contact-wa" data-id="' + c.id + '" href="#" target="_blank" rel="noopener noreferrer">WhatsApp</a>' : '') +
+        '<button class="btn sm warn" type="button" data-act="contact-remove" data-id="' + c.id + '">Remove</button></div></article>';
+    }).join('');
+  }
+  function initBuyers() { renderContacts(); var m = $('#i-msg'); if (m) m.value = inviteMessage(); }
+
+  document.addEventListener('input', function (e) {
+    var id = e.target.id || '';
+    if (id === 'i-msg') e.target.dataset.edited = '1';
+    else if (id.indexOf('i-') === 0) { var m = $('#i-msg'); if (m && m.dataset.edited !== '1') m.value = inviteMessage(); }
+  });
+  document.addEventListener('change', function (e) {
+    var id = e.target.id || '';
+    if (id.indexOf('i-') === 0 && id !== 'i-msg') { var m = $('#i-msg'); if (m && m.dataset.edited !== '1') m.value = inviteMessage(); }
+    var cid = e.target.dataset && e.target.dataset.contactStatus;
+    if (cid) {
+      var c = contacts.filter(function (x) { return x.id === cid; })[0];
+      if (c) { c.status = e.target.value; saveContacts(); toast('Status updated'); }
+    }
+  });
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-act]'); if (!b) return;
+    var act = b.dataset.act;
+    if (act === 'mapsearch') {
+      var where = $('#fb-district').value;
+      if (where === '__me' && !ui.me) { e.preventDefault(); toast('Tap Use my location first, then try again.'); return; }
+      b.href = mapSearchHref(b.dataset.term, where);
+    } else if (act === 'invite-wa') {
+      var to = ($('#i-to').value || '').trim();
+      b.href = 'https://wa.me/' + (to ? toIntl(to) : '') + '?text=' + encodeURIComponent($('#i-msg').value);
+    } else if (act === 'invite-copy') {
+      try { navigator.clipboard.writeText($('#i-msg').value).then(function () { toast('Message copied'); }, function () { toast('Press and hold the message to copy it'); }); }
+      catch (err) { toast('Press and hold the message to copy it'); }
+    } else if (act === 'contact-wa') {
+      var c = contacts.filter(function (x) { return x.id === b.dataset.id; })[0];
+      if (c) b.href = 'https://wa.me/' + toIntl(c.phone) + '?text=' + encodeURIComponent(inviteMessage());
+    } else if (act === 'contact-add') {
+      var v = function (k) { return ($('#c-' + k).value || '').trim(); }, er = $('#c-err');
+      if (!v('name')) { er.textContent = 'Enter the business or person name.'; return; }
+      if (v('phone') && !validPhone(v('phone'))) { er.textContent = 'Enter a valid phone number, for example 0772 000 000.'; return; }
+      er.textContent = '';
+      contacts.unshift({ id: uid(), name: v('name'), type: v('type'), phone: v('phone'), district: v('district'), note: v('note'), status: 'To call', ts: Date.now() });
+      saveContacts(); renderContacts();
+      ['name', 'phone', 'note'].forEach(function (k) { $('#c-' + k).value = ''; });
+      toast('Contact saved on this phone');
+    } else if (act === 'contact-remove') {
+      contacts = contacts.filter(function (x) { return x.id !== b.dataset.id; });
+      saveContacts(); renderContacts(); toast('Contact removed');
+    }
+  });
+
+  /* ---------- saving posts: on this phone, or in the shared database once it is set up ---------- */
+  function isMine(it) { return cloud.on ? it.ownerId === cloud.uid : state.mine.indexOf(it.id) > -1; }
+  function savePost(col, it) {
+    if (cloud.on) {
+      if (!cloud.uid) { toast('Still connecting. Wait a moment and try again.'); return false; }
+      cloud.db.collection(col).doc(it.id).set(Object.assign({ ownerId: cloud.uid }, it))
+        .catch(function () { toast('Could not save your post. Check your connection and try again.'); });
+      return true;
+    }
+    state[col].unshift(it); state.mine.push(it.id); save();
+    return true;
+  }
+  function markSold(id) {
+    if (cloud.on) {
+      cloud.db.collection('farms').doc(id).update({ sold: true }).then(function () { toast('Marked as sold'); }, function () { toast('Could not update. Check your connection.'); });
+      return;
+    }
+    var f = state.farms.filter(function (x) { return x.id === id; })[0];
+    if (f) { f.sold = true; save(); render(false); toast('Marked as sold'); }
+  }
+  function removePost(id) {
+    if (cloud.on) {
+      var col = state.farms.some(function (x) { return x.id === id; }) ? 'farms' : 'orders';
+      cloud.db.collection(col).doc(id).delete().then(function () { toast('Post removed'); }, function () { toast('Could not remove. Check your connection.'); });
+      return;
+    }
+    state.farms = state.farms.filter(function (x) { return x.id !== id; });
+    state.orders = state.orders.filter(function (x) { return x.id !== id; });
+    state.mine = state.mine.filter(function (m) { return m !== id; });
+    save(); render(false); toast('Post removed');
+  }
+  function startCloud() {
+    if (!FIREBASE_CONFIG || !window.firebase) return;
+    try {
+      firebase.initializeApp(FIREBASE_CONFIG);
+      cloud.db = firebase.firestore();
+      cloud.on = true;
+      state.farms = []; state.orders = [];
+      firebase.auth().onAuthStateChanged(function (u) { if (u) { cloud.uid = u.uid; render(false); } });
+      firebase.auth().signInAnonymously().catch(function () { toast('Could not connect to the shared database.'); });
+      ['farms', 'orders'].forEach(function (col) {
+        cloud.db.collection(col).orderBy('ts', 'desc').limit(500).onSnapshot(function (snap) {
+          state[col] = snap.docs.map(function (d) { var x = d.data(); x.id = d.id; return x; });
+          cloud.loaded = true; render(false);
+        }, function () { toast('Could not load posts. Check your internet connection.'); });
+      });
+    } catch (e) { cloud.on = false; }
+  }
+
+  /* ---------- events ---------- */
+  function syncFilters() {
+    $('#q').value = ui.q; $('#fprod').value = ui.product; $('#fdist').value = ui.district; $('#fdel').checked = ui.delivers;
+    $('#frad').value = String(ui.radius); $('#fsort').value = ui.sort;
+  }
+  $('#toolbar').addEventListener('input', function (e) {
+    ui.q = $('#q').value; ui.product = $('#fprod').value; ui.district = $('#fdist').value; ui.delivers = $('#fdel').checked;
+    ui.sort = $('#fsort').value; ui.radius = Number($('#frad').value);
+    render(e.target.id !== 'q');
+  });
+  document.addEventListener('change', function (e) {
+    var id = e.target.id || '';
+    if (/^[bs]-product$/.test(id)) $('#' + id.charAt(0) + '-unit').value = unitFor(e.target.value);
+    if (/^[bs]-paste$/.test(id)) {
+      var g = checkGps(e.target.value), er = $('#' + id.charAt(0) + '-err');
+      if (g === false) er.textContent = GPS_ERR;
+      else if (g) { er.textContent = ''; setPin(g); if (map) map.setView([g.lat, g.lng], 12); }
+    }
+  });
+  document.addEventListener('submit', function (e) {
+    var form = e.target.closest && e.target.closest('form.postform');
+    if (!form) return;
+    e.preventDefault();
+    submitPost(form.dataset.kind);
+  });
+  function goTab(t) { endPick(); setPin(null); ui.tab = t; render(true); window.scrollTo(0, 0); }
+  document.querySelector('nav.tabs').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-tab]'); if (!b) return;
+    goTab(b.dataset.tab);
+  });
+
+  function find(id) { return state.farms.concat(state.orders).filter(function (x) { return x.id === id; })[0]; }
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-act]'); if (!b) return;
+    var act = b.dataset.act, id = b.dataset.id;
+    if (act === 'goto') goTab(b.dataset.tab);
+    else if (act === 'locate') useMyLocation();
+    else if (act === 'fit-uganda') { if (map) map.fitBounds(UG); }
+    else if (act === 'pin-here') locate(function (me) { setPin({ lat: round5(me.lat), lng: round5(me.lng) }); if (map) map.setView([me.lat, me.lng], 14); toast('Pin set to your current location'); });
+    else if (act === 'pin-pick') pickOnMap();
+    else if (act === 'pin-clear') setPin(null);
+    else if (act === 'pick-cancel') endPick();
+    else if (act === 'focus') {
+      var it = find(id);
+      if (it && map) { map.setView([it.lat, it.lng], 13); if (markers[id]) markers[id].openPopup(); $('#map').scrollIntoView({ block: 'nearest' }); }
+    } else if (act === 'reveal') {
+      var item = find(id); if (!item) return;
+      var plain = item.phone.replace(/[^\d+]/g, '');
+      var div = document.createElement('div');
+      div.className = 'contact';
+      div.innerHTML = '<span class="num"></span><div class="row"><button class="btn sm" type="button" data-act="copy">Copy number</button><a class="btn sm ghost" href="tel:' + esc(plain) + '">Call</a></div>';
+      div.querySelector('.num').textContent = item.phone;
+      div.querySelector('[data-act="copy"]').dataset.num = item.phone;
+      var row = b.closest('.row');
+      row.parentNode.insertBefore(div, row);
+      b.remove();
+    } else if (act === 'copy') {
+      try { navigator.clipboard.writeText(b.dataset.num).then(function () { toast('Number copied'); }, function () { toast('Press and hold the number to copy it'); }); }
+      catch (err) { toast('Press and hold the number to copy it'); }
+    } else if (act === 'sold') {
+      markSold(id);
+    } else if (act === 'remove') {
+      removePost(id);
+    }
+  });
+
+  /* ---------- start ---------- */
+  $('#fprod').innerHTML = '<option value="">All products</option>' + opts(PRODUCTS.map(function (p) { return p.name; }));
+  $('#fdist').innerHTML = '<option value="">All districts</option>' + opts(DISTRICTS);
+  /* ---------- install button (Add to Home screen) ---------- */
+  var deferredInstall = null, installBtn = $('#installbtn');
+  function isStandalone() { return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true; }
+  var isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  if (isStandalone()) installBtn.hidden = true;
+  window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); deferredInstall = e; });
+  window.addEventListener('appinstalled', function () { deferredInstall = null; installBtn.hidden = true; toast('Poultry Connect is installed'); });
+  installBtn.addEventListener('click', function () {
+    if (deferredInstall) {
+      deferredInstall.prompt();
+      deferredInstall.userChoice.then(function () { deferredInstall = null; });
+    } else if (isIos) {
+      toast('Tap the Share button, then Add to Home Screen.');
+    } else {
+      toast('Open your browser menu and tap Install app or Add to Home screen.');
+    }
+  });
+  if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+    navigator.serviceWorker.register('sw.js').catch(function () {});
+  }
+
+  startCloud();
+  initMap();
+  render(true);
+})();
+</script>
+</body>
+</html>

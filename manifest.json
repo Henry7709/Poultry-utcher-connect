@@ -1,0 +1,42 @@
+{
+  "background_color": "#ffffff",
+  "dir": "ltr",
+  "display": "standalone",
+  "name": "henry7709.github",
+  "orientation": "any",
+  "scope": "https://henry7709.github.io/Bouch-connect/",
+  "short_name": "henry7709.github",
+  "start_url": "https://henry7709.github.io/Bouch-connect/",
+  "theme_color": "#C23B25",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,&lt;svg xmlns%3D%27http%3A//www.w3.org/2000/svg%27 viewBox%3D%270 0 64 64%27&gt;&lt;rect width%3D%2764%27 height%3D%2764%27 rx%3D%2714%27 fill%3D%27%23C23B25%27/&gt;&lt;path d%3D%27M13 38C6 33 5 22 10 17c3 6 7 9 13 12z%27 fill%3D%27%23fff%27/&gt;&lt;ellipse cx%3D%2730%27 cy%3D%2740%27 rx%3D%2717%27 ry%3D%2713%27 fill%3D%27%23fff%27/&gt;&lt;path d%3D%27M22 41c3 7 14 7 18-1-4 2-13 1-18 1z%27 fill%3D%27%23E8D2CC%27/&gt;&lt;circle cx%3D%2743%27 cy%3D%2724%27 r%3D%279%27 fill%3D%27%23fff%27/&gt;&lt;circle cx%3D%2738%27 cy%3D%2716%27 r%3D%273.2%27 fill%3D%27%23F4BA1C%27/&gt;&lt;circle cx%3D%2743%27 cy%3D%2714%27 r%3D%273.6%27 fill%3D%27%23F4BA1C%27/&gt;&lt;circle cx%3D%2748%27 cy%3D%2716.5%27 r%3D%273.2%27 fill%3D%27%23F4BA1C%27/&gt;&lt;path d%3D%27M51 22l8 3-8 3z%27 fill%3D%27%23F4BA1C%27/&gt;&lt;circle cx%3D%2746%27 cy%3D%2722.5%27 r%3D%271.7%27 fill%3D%27%231A1F1D%27/&gt;&lt;ellipse cx%3D%2749%27 cy%3D%2731%27 rx%3D%272.2%27 ry%3D%273.4%27 fill%3D%27%23F4BA1C%27/&gt;&lt;path d%3D%27M26 52v7M34 52v7M22 59h8M30 59h8%27 stroke%3D%27%23F4BA1C%27 stroke-width%3D%272.6%27 stroke-linecap%3D%27round%27 fill%3D%27none%27/&gt;&lt;/svg&gt;",
+      "type": "image/svg+xml",
+      "isSquare": false,
+      "isPng": false,
+      "isWebp": false,
+      "isJpg": false,
+      "width": 0,
+      "is512x512": false,
+      "is256x256": false,
+      "is192x192": false
+    },
+    {
+      "src": "https://henry7709.github.io/Bouch-connect/icon-192.png",
+      "isSquare": false,
+      "isPng": true,
+      "isWebp": false,
+      "isJpg": false,
+      "width": 0,
+      "is512x512": false,
+      "is256x256": false,
+      "is192x192": false
+    }
+  ],
+  "id": "Henry ",
+  "lang": "en",
+  "categories": [
+    "food",
+    "shopping"
+  ]
+}

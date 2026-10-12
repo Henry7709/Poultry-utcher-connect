@@ -1,0 +1,33 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // A post must belong to the person saving it, and have sensible values.
+    function validPost() {
+      let d = request.resource.data;
+      return d.ownerId == request.auth.uid
+        && d.name is string && d.name.size() > 0 && d.name.size() <= 80
+        && d.product is string && d.product.size() <= 40
+        && d.qty is number && d.qty > 0 && d.qty < 1000000
+        && d.price is number && d.price > 0 && d.price < 100000000
+        && d.phone is string && d.phone.size() >= 8 && d.phone.size() <= 20
+        && d.lat is number && d.lat > -2 && d.lat < 5
+        && d.lng is number && d.lng > 29 && d.lng < 36
+        && (!('notes' in d) || (d.notes is string && d.notes.size() <= 500));
+    }
+
+    // Anyone can read posts. Only the person who made a post can change or delete it.
+    match /farms/{id} {
+      allow read: if true;
+      allow create: if request.auth != null && validPost();
+      allow update: if request.auth != null && resource.data.ownerId == request.auth.uid && validPost();
+      allow delete: if request.auth != null && resource.data.ownerId == request.auth.uid;
+    }
+    match /orders/{id} {
+      allow read: if true;
+      allow create: if request.auth != null && validPost();
+      allow update: if request.auth != null && resource.data.ownerId == request.auth.uid && validPost();
+      allow delete: if request.auth != null && resource.data.ownerId == request.auth.uid;
+    }
+  }
+}
